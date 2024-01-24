@@ -49,9 +49,9 @@ enum
  */
 // Templates for the pads (source and sink)
 static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
-    GST_PAD_SINK,
-    GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("text/plain")
+    GST_PAD_SINK, //Type of pad (in this case, a sink)
+    GST_PAD_ALWAYS, //PAd will always be present
+    GST_STATIC_CAPS ("text/plain") //Capacities of the pad (in this case, it accepts text)
 );
 
 static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
@@ -74,6 +74,7 @@ static void gst_plugin_template_set_property (GObject * object, //Set property
 static void gst_plugin_template_get_property (GObject * object, //Get property
     guint prop_id, GValue * value, GParamSpec * pspec);
 
+
 static gboolean gst_plugin_template_sink_event (GstPad * pad,
     GstObject * parent, GstEvent * event);
 static GstFlowReturn gst_plugin_template_chain (GstPad * pad,
@@ -91,12 +92,14 @@ gst_plugin_template_class_init (GstPluginTemplateClass * klass)
   GObjectClass *gobject_class;
   GstElementClass *gstelement_class;
 
+  //These lines "associate" the GstPluginTemplateClass class to GObjectClass and GstElementClass ir order to access their methods
   gobject_class = (GObjectClass *) klass;
   gstelement_class = (GstElementClass *) klass;
 
   gobject_class->set_property = gst_plugin_template_set_property;
   gobject_class->get_property = gst_plugin_template_get_property;
 
+  //Property: produces verbose info
   g_object_class_install_property (gobject_class, PROP_SILENT,
       g_param_spec_boolean ("silent", "Silent", "Produce verbose output ?",
           FALSE, G_PARAM_READWRITE));
@@ -106,6 +109,7 @@ gst_plugin_template_class_init (GstPluginTemplateClass * klass)
       "FIXME:Generic",
       "FIXME:Generic Template Element", "AUTHOR_NAME AUTHOR_EMAIL");
 
+  //Adds the sink&source templates to the GstElement class 
   gst_element_class_add_pad_template (gstelement_class,
       gst_static_pad_template_get (&src_factory));
   gst_element_class_add_pad_template (gstelement_class,
@@ -122,21 +126,29 @@ gst_plugin_template_class_init (GstPluginTemplateClass * klass)
 static void
 gst_plugin_template_init (GstPluginTemplate * filter)
 {
+  //Creates a new sink pad based on the static template sink_factory
   filter->sinkpad = gst_pad_new_from_static_template (&sink_factory, "sink");
-  gst_pad_set_event_function (filter->sinkpad,
-      GST_DEBUG_FUNCPTR (gst_plugin_template_sink_event));
-  gst_pad_set_chain_function (filter->sinkpad,
-      GST_DEBUG_FUNCPTR (gst_plugin_template_chain));
-  GST_PAD_SET_PROXY_CAPS (filter->sinkpad);
-  gst_element_add_pad (GST_ELEMENT (filter), filter->sinkpad);
 
+  //Establishes the function for events in the sink
+  gst_pad_set_event_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_template_sink_event));
+
+  //Establishes the chain function for the pad
+  gst_pad_set_chain_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_template_chain));
+
+  //Establishes proxy capabilities of the pad (pad adapting automatically to the connected pad)
+  GST_PAD_SET_PROXY_CAPS (filter->sinkpad); gst_element_add_pad (GST_ELEMENT (filter), filter->sinkpad);
+
+  //Creates a new pad for sending the data
   filter->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
-  GST_PAD_SET_PROXY_CAPS (filter->srcpad);
-  gst_element_add_pad (GST_ELEMENT (filter), filter->srcpad);
 
-  filter->silent = FALSE;
+  //Proxy capabilities for the data pad
+  GST_PAD_SET_PROXY_CAPS (filter->srcpad); gst_element_add_pad (GST_ELEMENT (filter), filter->srcpad);
+
+  //Filter property (see gst_plugin_template_class_init)
+  filter->silent = FALSE; //If silent=true, no modification will happen (see chain)
 }
 
+//Functions that allow writting/reading the "silent" property in instances of GstPluginTemplate
 static void
 gst_plugin_template_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
@@ -169,6 +181,8 @@ gst_plugin_template_get_property (GObject * object, guint prop_id,
   }
 }
 
+
+
 /* GstElement vmethod implementations */
 
 /* this function handles sink events */
@@ -193,12 +207,13 @@ static gboolean gst_plugin_template_sink_event (GstPad * pad, GstObject * parent
 
       gst_event_parse_caps (event, &caps);
       /* do something with the caps */
+      //Place where the event should be handled
 
       /* and forward */
       ret = gst_pad_event_default (pad, parent, event);
       break;
     }
-    default:
+    default: //For the rest of the cases, does the default action
       ret = gst_pad_event_default (pad, parent, event);
       break;
   }
@@ -218,7 +233,6 @@ static GstFlowReturn gst_plugin_template_chain (GstPad * pad, GstObject * parent
   filter = GST_PLUGIN_TEMPLATE (parent);
 
   if (filter->silent == FALSE)
-    //g_print ("Received text: %s\n", GST_BUFFER_DATA (buf)); //Doesn't work
     g_print ("Here the text modification must happen.\n"); //Modifies text
 
   /* just push out the incoming buffer without touching it */
@@ -261,6 +275,6 @@ plugin_init (GstPlugin * plugin)
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
     plugin,
-    "plugin_template",
+    "Pablo's test plugin",
     plugin_init,
     PACKAGE_VERSION, GST_LICENSE, GST_PACKAGE_NAME, GST_PACKAGE_ORIGIN)
