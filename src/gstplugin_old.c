@@ -47,18 +47,17 @@ enum
  *
  * describe the real formats here.
  */
-// Templates for the pads (source and sink)
 static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("text/plain")
-);
+    GST_STATIC_CAPS ("ANY")
+    );
 
 static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("text/plain")
-);
+    GST_STATIC_CAPS ("ANY")
+    );
 
 
 //Implementation of the type of element: GstPluginTemplate
@@ -172,10 +171,8 @@ gst_plugin_template_get_property (GObject * object, guint prop_id,
 /* GstElement vmethod implementations */
 
 /* this function handles sink events */
-
-
-// Sink event function 
-static gboolean gst_plugin_template_sink_event (GstPad * pad, GstObject * parent,
+static gboolean
+gst_plugin_template_sink_event (GstPad * pad, GstObject * parent,
     GstEvent * event)
 {
   GstPluginTemplate *filter;
@@ -205,26 +202,22 @@ static gboolean gst_plugin_template_sink_event (GstPad * pad, GstObject * parent
   return ret;
 }
 
-
 /* chain function
- * this function does the actual processing: VERY IMPORTANT ONE!!!!!!!
+ * this function does the actual processing
  */
-// Chain function (new)
-static GstFlowReturn gst_plugin_template_chain (GstPad * pad, GstObject * parent,
-    GstBuffer * buf)
+static GstFlowReturn
+gst_plugin_template_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
   GstPluginTemplate *filter;
 
   filter = GST_PLUGIN_TEMPLATE (parent);
 
   if (filter->silent == FALSE)
-    //g_print ("Received text: %s\n", GST_BUFFER_DATA (buf)); //Doesn't work
-    g_print ("Here the text modification must happen.\n"); //Modifies text
+    g_print ("I'm plugged, therefore I'm in.\n");
 
   /* just push out the incoming buffer without touching it */
   return gst_pad_push (filter->srcpad, buf);
 }
-
 
 
 /* entry point to initialize the plug-in
