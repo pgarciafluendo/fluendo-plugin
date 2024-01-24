@@ -1,17 +1,17 @@
 
 
-#ifndef __GST_PLUGIN_TEMPLATE_H__
-#define __GST_PLUGIN_TEMPLATE_H__
+#ifndef __GST_PLUGIN_PABLO_H__
+#define __GST_PLUGIN_PABLO_H__
 
 #include <gst/gst.h>
 
 G_BEGIN_DECLS
 
-#define GST_TYPE_PLUGIN_TEMPLATE (gst_plugin_template_get_type())
-G_DECLARE_FINAL_TYPE (GstPluginTemplate, gst_plugin_template,
-    GST, PLUGIN_TEMPLATE, GstElement)
+#define GST_TYPE_PLUGIN_PABLO (gst_plugin_pablo_get_type())
+G_DECLARE_FINAL_TYPE (GstPluginPablo, gst_plugin_pablo,
+    GST, PLUGIN_PABLO, GstElement)
 
-struct _GstPluginTemplate
+struct _GstPluginPablo
 {
   GstElement element;
 
@@ -22,4 +22,4 @@ struct _GstPluginTemplate
 
 G_END_DECLS
 
-#endif /* __GST_PLUGIN_TEMPLATE_H__ */
+#endif /* __GST_PLUGIN_PABLO_H__ */

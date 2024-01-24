@@ -23,8 +23,8 @@
 #include "gstplugin.h"
 
 //Definition of a debugging category
-GST_DEBUG_CATEGORY_STATIC (gst_plugin_template_debug);
-#define GST_CAT_DEFAULT gst_plugin_template_debug
+GST_DEBUG_CATEGORY_STATIC (gst_plugin_pablo_debug);
+#define GST_CAT_DEFAULT gst_plugin_pablo_debug
 
 
 //Definition of signals its and propierties
@@ -62,22 +62,22 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
 
 
 //Implementation of the type of element: GstPluginTemplate
-#define gst_plugin_template_parent_class parent_class
-G_DEFINE_TYPE (GstPluginTemplate, gst_plugin_template, GST_TYPE_ELEMENT); //Definition of the type
-GST_ELEMENT_REGISTER_DEFINE (plugin_template, "plugin_template", GST_RANK_NONE, //Registration of the element (plugin)
-    GST_TYPE_PLUGIN_TEMPLATE);
+#define gst_plugin_pablo_parent_class parent_class
+G_DEFINE_TYPE (GstPluginPablo, gst_plugin_pablo, GST_TYPE_ELEMENT); //Definition of the type
+GST_ELEMENT_REGISTER_DEFINE (plugin_pablo, "plugin_pablo", GST_RANK_NONE, //Registration of the element (plugin)
+    GST_TYPE_PLUGIN_PABLO);
 
 
 //Handling propierties
-static void gst_plugin_template_set_property (GObject * object, //Set property
+static void gst_plugin_pablo_set_property (GObject * object, //Set property
     guint prop_id, const GValue * value, GParamSpec * pspec);
-static void gst_plugin_template_get_property (GObject * object, //Get property
+static void gst_plugin_pablo_get_property (GObject * object, //Get property
     guint prop_id, GValue * value, GParamSpec * pspec);
 
 
-static gboolean gst_plugin_template_sink_event (GstPad * pad,
+static gboolean gst_plugin_pablo_sink_event (GstPad * pad,
     GstObject * parent, GstEvent * event);
-static GstFlowReturn gst_plugin_template_chain (GstPad * pad,
+static GstFlowReturn gst_plugin_pablo_chain (GstPad * pad,
     GstObject * parent, GstBuffer * buf);
 
 
@@ -87,17 +87,17 @@ static GstFlowReturn gst_plugin_template_chain (GstPad * pad,
 /* initialize the plugin's class */
 //Class initializing
 static void
-gst_plugin_template_class_init (GstPluginTemplateClass * klass)
+gst_plugin_pablo_class_init (GstPluginPabloClass * klass)
 {
   GObjectClass *gobject_class;
   GstElementClass *gstelement_class;
 
-  //These lines "associate" the GstPluginTemplateClass class to GObjectClass and GstElementClass ir order to access their methods
+  //These lines "associate" the GstPluginPabloClass class to GObjectClass and GstElementClass ir order to access their methods
   gobject_class = (GObjectClass *) klass;
   gstelement_class = (GstElementClass *) klass;
 
-  gobject_class->set_property = gst_plugin_template_set_property;
-  gobject_class->get_property = gst_plugin_template_get_property;
+  gobject_class->set_property = gst_plugin_pablo_set_property;
+  gobject_class->get_property = gst_plugin_pablo_get_property;
 
   //Property: produces verbose info
   g_object_class_install_property (gobject_class, PROP_SILENT,
@@ -105,7 +105,7 @@ gst_plugin_template_class_init (GstPluginTemplateClass * klass)
           FALSE, G_PARAM_READWRITE));
 
   gst_element_class_set_details_simple (gstelement_class,
-      "Plugin",
+      "Pablo's plugin", //Name of the class
       "FIXME:Generic",
       "FIXME:Generic Template Element", "AUTHOR_NAME AUTHOR_EMAIL");
 
@@ -124,16 +124,16 @@ gst_plugin_template_class_init (GstPluginTemplateClass * klass)
  */
 //Instance initializing
 static void
-gst_plugin_template_init (GstPluginTemplate * filter)
+gst_plugin_pablo_init (GstPluginPablo * filter)
 {
   //Creates a new sink pad based on the static template sink_factory
   filter->sinkpad = gst_pad_new_from_static_template (&sink_factory, "sink");
 
   //Establishes the function for events in the sink
-  gst_pad_set_event_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_template_sink_event));
+  gst_pad_set_event_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_pablo_sink_event));
 
   //Establishes the chain function for the pad
-  gst_pad_set_chain_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_template_chain));
+  gst_pad_set_chain_function (filter->sinkpad, GST_DEBUG_FUNCPTR (gst_plugin_pablo_chain));
 
   //Establishes proxy capabilities of the pad (pad adapting automatically to the connected pad)
   GST_PAD_SET_PROXY_CAPS (filter->sinkpad); gst_element_add_pad (GST_ELEMENT (filter), filter->sinkpad);
@@ -150,10 +150,10 @@ gst_plugin_template_init (GstPluginTemplate * filter)
 
 //Functions that allow writting/reading the "silent" property in instances of GstPluginTemplate
 static void
-gst_plugin_template_set_property (GObject * object, guint prop_id,
+gst_plugin_pablo_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
 {
-  GstPluginTemplate *filter = GST_PLUGIN_TEMPLATE (object);
+  GstPluginPablo *filter = GST_PLUGIN_PABLO (object);
 
   switch (prop_id) {
     case PROP_SILENT:
@@ -166,10 +166,10 @@ gst_plugin_template_set_property (GObject * object, guint prop_id,
 }
 
 static void
-gst_plugin_template_get_property (GObject * object, guint prop_id,
+gst_plugin_pablo_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec)
 {
-  GstPluginTemplate *filter = GST_PLUGIN_TEMPLATE (object);
+  GstPluginPablo *filter = GST_PLUGIN_PABLO (object);
 
   switch (prop_id) {
     case PROP_SILENT:
@@ -189,13 +189,13 @@ gst_plugin_template_get_property (GObject * object, guint prop_id,
 
 
 // Sink event function 
-static gboolean gst_plugin_template_sink_event (GstPad * pad, GstObject * parent,
+static gboolean gst_plugin_pablo_sink_event (GstPad * pad, GstObject * parent,
     GstEvent * event)
 {
-  GstPluginTemplate *filter;
+  GstPluginPablo *filter;
   gboolean ret;
 
-  filter = GST_PLUGIN_TEMPLATE (parent);
+  filter = GST_PLUGIN_PABLO (parent);
 
   GST_LOG_OBJECT (filter, "Received %s event: %" GST_PTR_FORMAT,
       GST_EVENT_TYPE_NAME (event), event);
@@ -225,12 +225,12 @@ static gboolean gst_plugin_template_sink_event (GstPad * pad, GstObject * parent
  * this function does the actual processing: VERY IMPORTANT ONE!!!!!!!
  */
 // Chain function (new)
-static GstFlowReturn gst_plugin_template_chain (GstPad * pad, GstObject * parent,
+static GstFlowReturn gst_plugin_pablo_chain (GstPad * pad, GstObject * parent,
     GstBuffer * buf)
 {
-  GstPluginTemplate *filter;
+  GstPluginPablo *filter;
 
-  filter = GST_PLUGIN_TEMPLATE (parent);
+  filter = GST_PLUGIN_PABLO (parent);
 
   if (filter->silent == FALSE)
     g_print ("Here the text modification must happen.\n"); //Modifies text
@@ -253,10 +253,10 @@ plugin_init (GstPlugin * plugin)
    *
    * exchange the string 'Template plugin' with your description
    */
-  GST_DEBUG_CATEGORY_INIT (gst_plugin_template_debug, "plugin",
+  GST_DEBUG_CATEGORY_INIT (gst_plugin_pablo_debug, "plugin",
       0, "Template plugin");
 
-  return GST_ELEMENT_REGISTER (plugin_template, plugin);
+  return GST_ELEMENT_REGISTER (plugin_pablo, plugin);
 }
 
 /* PACKAGE: this is usually set by meson depending on some _INIT macro
