@@ -225,18 +225,31 @@ static gboolean gst_plugin_pablo_sink_event (GstPad * pad, GstObject * parent,
  * this function does the actual processing: VERY IMPORTANT ONE!!!!!!!
  */
 // Chain function (new)
-static GstFlowReturn gst_plugin_pablo_chain (GstPad * pad, GstObject * parent,
-    GstBuffer * buf)
+static GstFlowReturn gst_plugin_pablo_chain(GstPad *pad, GstObject *parent, GstBuffer *buf)
 {
-  GstPluginPablo *filter;
+  GstPluginPablo *processor;
+  processor = GST_PLUGIN_PABLO(parent);
 
-  filter = GST_PLUGIN_PABLO (parent);
+  if (processor->silent == FALSE){
 
-  if (filter->silent == FALSE)
-    g_print ("Here the text modification must happen.\n"); //Modifies text
+    if (gst_buffer_is_all_memory_writable(buf)) { 
 
-  /* just push out the incoming buffer without touching it */
-  return gst_pad_push (filter->srcpad, buf);
+      GstMapInfo map;  // Access buffer data
+      if (gst_buffer_map(buf, &map, GST_MAP_READ)) {
+        g_print("Buffer content before transforming: %.*s\n", (int)map.size, (gchar *)map.data);
+        for (gsize i = 0; i < map.size; i++) {
+          ((gchar *)map.data)[i] = toupper(((gchar *)map.data)[i]);
+        }
+        g_print("Buffer content after transforming: %.*s\n", (int)map.size, (gchar *)map.data);
+
+        // Lib buffer mapping
+        gst_buffer_unmap(buf, &map);
+      }
+    }
+  }
+
+  /* Push out the modified buffer */
+  return gst_pad_push(processor->srcpad, buf);
 }
 
 

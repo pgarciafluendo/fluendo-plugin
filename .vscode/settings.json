@@ -1,6 +1,10 @@
 {
     "C_Cpp.default.compileCommands": "/home/pgarcia/fluendo/onboarding/plugin_pablo/plugin-pablo/builddir/compile_commands.json",
     "files.associations": {
-        "gst.h": "c"
+        "gst.h": "c",
+        "array": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c"
     }
 }
