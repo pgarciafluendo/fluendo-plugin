@@ -1,3 +1,0 @@
-How to test if the library is a GStreamer plugin: 
-gst-inspect-1.0 --gst-plugin-load=./libgstmyelement.so my_element
-gst-launch-1.0 filesrc location=../../test/test.txt ! plugin_pablo ! filesink location=../../test/output.txt

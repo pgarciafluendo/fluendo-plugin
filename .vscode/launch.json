@@ -11,7 +11,7 @@
             "args": [
                 "--gst-plugin-load=./src/libgstplugin.so",
                 "filesrc", "location=../test/test.txt",
-                "!", "plugin_pablo",
+                "!", "plugin_pablo", "operation=identity",
                 "!", "filesink", "location=../test/output.txt"
             ],
             "preLaunchTask": "Meson: Build all targets",

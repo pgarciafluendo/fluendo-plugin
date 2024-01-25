@@ -18,6 +18,8 @@ struct _GstPluginPablo
   GstPad *sinkpad, *srcpad;
 
   gboolean silent;
+
+  gchar *operation;
 };
 
 G_END_DECLS

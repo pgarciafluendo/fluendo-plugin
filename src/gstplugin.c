@@ -38,7 +38,8 @@ enum
 enum
 {
   PROP_0,
-  PROP_SILENT
+  PROP_SILENT,
+  PROP_OPERATION
 };
 
 
@@ -99,10 +100,15 @@ gst_plugin_pablo_class_init (GstPluginPabloClass * klass)
   gobject_class->set_property = gst_plugin_pablo_set_property;
   gobject_class->get_property = gst_plugin_pablo_get_property;
 
-  //Property: produces verbose info
+  //Property SILENT: produces verbose info
   g_object_class_install_property (gobject_class, PROP_SILENT,
-      g_param_spec_boolean ("silent", "Silent", "Produce verbose output ?",
+      g_param_spec_boolean ("silent", "Silent", "Disallows processing",
           FALSE, G_PARAM_READWRITE));
+
+  //Property OPERATION: type of processing
+  g_object_class_install_property (gobject_class, PROP_OPERATION,
+      g_param_spec_string ("operation", "Operation", "Operation to perform (identity, toupper, tolower)",
+          "identity", G_PARAM_READWRITE)); //The default option is "identity"
 
   gst_element_class_set_details_simple (gstelement_class,
       "Pablo's plugin", //Name of the class
@@ -144,8 +150,10 @@ gst_plugin_pablo_init (GstPluginPablo * filter)
   //Proxy capabilities for the data pad
   GST_PAD_SET_PROXY_CAPS (filter->srcpad); gst_element_add_pad (GST_ELEMENT (filter), filter->srcpad);
 
-  //Filter property (see gst_plugin_template_class_init)
+  //Default properties
   filter->silent = FALSE; //If silent=true, no modification will happen (see chain)
+  filter->operation = g_strdup ("identity");  //no modification
+
 }
 
 //Functions that allow writting/reading the "silent" property in instances of GstPluginTemplate
@@ -158,6 +166,10 @@ gst_plugin_pablo_set_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_SILENT:
       filter->silent = g_value_get_boolean (value);
+      break;
+    case PROP_OPERATION:
+      g_free (filter->operation);
+      filter->operation = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -174,6 +186,9 @@ gst_plugin_pablo_get_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_SILENT:
       g_value_set_boolean (value, filter->silent);
+      break;
+    case PROP_OPERATION:
+      g_value_set_string (value, filter->operation);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -234,18 +249,33 @@ static GstFlowReturn gst_plugin_pablo_chain(GstPad *pad, GstObject *parent, GstB
 
     if (gst_buffer_is_all_memory_writable(buf)) { 
 
-      GstMapInfo map;  // Access buffer data
-      if (gst_buffer_map(buf, &map, GST_MAP_READ)) {
-        g_print("Buffer content before transforming: %.*s\n", (int)map.size, (gchar *)map.data);
-        for (gsize i = 0; i < map.size; i++) {
-          ((gchar *)map.data)[i] = toupper(((gchar *)map.data)[i]);
-        }
-        g_print("Buffer content after transforming: %.*s\n", (int)map.size, (gchar *)map.data);
+      if (g_strcmp0 (processor->operation, "identity") == 0) { //Idenitity
+        g_print("Option 'identity' selected: no processing aplied\n");
 
-        // Lib buffer mapping
+      }
+      else{
+        GstMapInfo map;  // Access buffer data
+        if (gst_buffer_map(buf, &map, GST_MAP_READ)) {
+
+          if (g_strcmp0 (processor->operation, "toupper") == 0){ //Toupper
+            g_print("Option 'toupper' selected: text converted to upper case\n");
+            for (gsize i = 0; i < map.size; i++) {
+              ((gchar *)map.data)[i] = toupper(((gchar *)map.data)[i]);
+            }
+          }
+
+          else if (g_strcmp0 (processor->operation, "tolower") == 0) { //Tolower
+            g_print("Option 'toupper' selected: text converted to lower case\n");
+            for (gsize i = 0; i < map.size; i++) {
+              ((gchar *)map.data)[i] = tolower(((gchar *)map.data)[i]);
+            }
+          }
+        }
+        
         gst_buffer_unmap(buf, &map);
       }
     }
+
   }
 
   /* Push out the modified buffer */
